@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    项目初始化
     <router-view/>
   </div>
 </template>
