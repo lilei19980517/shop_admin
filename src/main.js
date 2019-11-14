@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import '@/assets/index.css'
 // 导入elementui-js
 import ElementUI from 'element-ui'
 // 导入elementui-css
