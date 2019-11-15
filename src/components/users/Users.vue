@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div style="margin-top: 15px;" class="search">
+      <el-input placeholder="请输入内容" v-model="queryStr" class="input-with-select">
+        <el-button slot="append" icon="el-icon-search" @click="queryFn"></el-button>
+      </el-input>
+    </div>
     <el-table :data="userList" stripe>
       <el-table-column prop="username" label="姓名" width="180"></el-table-column>
       <el-table-column prop="email" label="邮箱" width="180"></el-table-column>
@@ -29,7 +34,8 @@ export default {
       userList: [],
       pageSize: 3,
       curPage: 1,
-      total: 10
+      total: 10,
+      queryStr: ""
     };
   },
 
@@ -38,8 +44,10 @@ export default {
       this.$http
         .get("/users", {
           params: {
-            pagenum: num,
-            pagesize: this.pageSize
+						pagenum: num || 1,
+						pagesize: this.pageSize,
+						// 查询
+						query: this.queryStr || ''
           },
           headers: {
             Authorization: localStorage.getItem("token")
@@ -57,10 +65,18 @@ export default {
     // ui库提供的分页点击页码事件
     changePage(curPage) {
       this.getUserList(curPage);
-    }
+		},
+		//查询功能
+		queryFn(){
+			this.getUserList()
+			console.log(123)
+		}
   }
 };
 </script>
 
 <style scoped>
+.search {
+  width: 300px;
+}
 </style>
