@@ -58,8 +58,11 @@ export default {
         .then(res => {
           const { data, meta } = res.data
           console.log(data)
+          // 登录成功
           if(meta.status === 200){
             console.log("登录成功")
+            // 存储token到缓存中
+            localStorage.setItem('token',data.token)
             this.$router.push('./home')
           }else {
             // ui库提供的消息提示方法
