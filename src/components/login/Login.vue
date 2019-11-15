@@ -26,9 +26,6 @@
 </template>
 
 <script>
-// 导入axios
-import axios from 'axios'
-
 export default {
   data() {
     return {
@@ -53,8 +50,8 @@ export default {
     // 登录功能实现
     login() {
       // 接口地址http://localhost:8888/api/private/v1/login
-      axios
-        .post('http://localhost:8888/api/private/v1/login', this.loginForm)
+      this.$http
+        .post('/login', this.loginForm)
         .then(res => {
           const { data, meta } = res.data
           console.log(data)
