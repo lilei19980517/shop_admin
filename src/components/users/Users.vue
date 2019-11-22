@@ -27,8 +27,14 @@
       </el-table-column>
       <el-table-column prop label="操作" min-width="270px">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" plain size="mini" />
-          <el-button type="danger" icon="el-icon-delete" plain size="mini" />
+          <el-button type="primary" icon="el-icon-edit" plain size="mini" @click="openEditUser(scope.row)" />
+          <el-button
+            type="danger"
+            icon="el-icon-delete"
+            plain
+            size="mini"
+            @click="delUser(scope.row.id)"
+          />
           <el-button type="success" icon="el-icon-check" plain size="mini">分配角色</el-button>
         </template>
       </el-table-column>
@@ -63,6 +69,24 @@
         <el-button type="primary" @click="addUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 编辑用户对话框 -->
+    <el-dialog title="编辑用户" :visible.sync="userEditDialog">
+      <el-form :model="userEditForm" :rules="userEditRules" ref="userEditForm">
+        <el-form-item disabled prop="username" label="用户名" label-width="120px">
+          <el-input v-model="userEditForm.username" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item prop="email" label="邮箱" label-width="120px">
+          <el-input v-model="userEditForm.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item prop="moble" label="手机" label-width="120px">
+          <el-input v-model="userEditForm.moble" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editUser">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -95,6 +119,23 @@ export default {
         password: [
           { required: true, message: "密码为必填项", trigger: "blur" },
           { min: 3, max: 6, message: "密码长度在3到6个字符", trigger: "blur" }
+        ]
+      },
+      // 编辑用户
+      userEditDialog: false,
+      userEditForm: {
+        username: "",
+        email: "",
+        moble: "",
+        id:""
+      },
+      userEditRules: {
+        moble: [
+          {
+            pattern: /^1(3|4|5|6|7|8|9)\d{9}$/,
+            message: "手机号吗格式不正确",
+            trigger: "blur"
+          }
         ]
       }
     };
@@ -169,6 +210,67 @@ export default {
           return false;
         }
       });
+    },
+    // 打开编辑用户弹窗
+    // data是传入的scope.row
+    openEditUser(data) {
+      this.userEditDialog = true;
+      for (let key in this.userEditForm){
+        this.userEditForm[key] = data[key]
+      }
+      console.log(this.userEditForm,data)
+    },
+    // 编辑用户
+    editUser() {
+      this.$refs.userEditForm.validate(valid=>{
+        if(valid){
+          const {id,email,mobile}=this.userEditForm
+          this.$http.put(`/users/${id}`,{
+            email,
+            mobile
+          }).then(res=>{
+            const {data,meta}=res.data
+            if(meta.status===200){
+              // 更新用户数据
+              const editUser = this.userList.find(item=>item.id===id)
+              editUser.email = data.email
+              editUser.mobile = data.mobile
+              this.userEditDialog =false
+            }
+          })
+        }
+      })
+    },
+    // 删除用户
+    delUser(id) {
+      this.$confirm("确认删除该用户吗", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.$http.delete(`users/${id}`).then(res => {
+            const { meta } = res.data;
+            this.$message({
+              type: "success",
+              message: meta.msg
+            });
+            //裁剪userList
+            const index = this.userList.findIndex(item => item.id === id);
+            this.userList.splice(index, 1);
+            // 如果是最后一页
+            const totalPage = Math.ceil(this.userList.length / this.pageSize);
+            if (this.curPage > totalPage) {
+              this.getUserList(--this.curPage);
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
     }
   }
 };
