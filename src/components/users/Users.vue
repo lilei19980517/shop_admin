@@ -60,8 +60,8 @@
         <el-form-item prop="email" label="邮箱" label-width="120px">
           <el-input v-model="userAddForm.email" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item prop="moble" label="手机" label-width="120px">
-          <el-input v-model="userAddForm.moble" autocomplete="off"></el-input>
+        <el-form-item prop="mobile" label="手机" label-width="120px">
+          <el-input v-model="userAddForm.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -78,8 +78,8 @@
         <el-form-item prop="email" label="邮箱" label-width="120px">
           <el-input v-model="userEditForm.email" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item prop="moble" label="手机" label-width="120px">
-          <el-input v-model="userEditForm.moble" autocomplete="off"></el-input>
+        <el-form-item prop="mobile" label="手机" label-width="120px">
+          <el-input v-model="userEditForm.mobile" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -108,7 +108,7 @@ export default {
         username: "",
         password: "",
         email: "",
-        moble: ""
+        mobile: ""
       },
       //添加用户对话框
       userAddRules: {
@@ -126,11 +126,11 @@ export default {
       userEditForm: {
         username: "",
         email: "",
-        moble: "",
+        mobile: "",
         id:""
       },
       userEditRules: {
-        moble: [
+        mobile: [
           {
             pattern: /^1(3|4|5|6|7|8|9)\d{9}$/,
             message: "手机号吗格式不正确",
