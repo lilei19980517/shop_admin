@@ -27,7 +27,13 @@
       </el-table-column>
       <el-table-column prop label="操作" min-width="270px">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" plain size="mini" @click="openEditUser(scope.row)" />
+          <el-button
+            type="primary"
+            icon="el-icon-edit"
+            plain
+            size="mini"
+            @click="openEditUser(scope.row)"
+          />
           <el-button
             type="danger"
             icon="el-icon-delete"
@@ -35,7 +41,13 @@
             size="mini"
             @click="delUser(scope.row.id)"
           />
-          <el-button type="success" icon="el-icon-check" plain size="mini">分配角色</el-button>
+          <el-button
+            type="success"
+            icon="el-icon-check"
+            plain
+            size="mini"
+            @click="setRole(scope.row)"
+          >分配角色</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -87,6 +99,23 @@
         <el-button type="primary" @click="editUser">确 定</el-button>
       </div>
     </el-dialog>
+   <!-- 分配角色的对话框 -->
+    <el-dialog title="分配角色" :visible.sync="setRoleDialogVisible" width="50%" @close="setRoleDialogClosed">
+      <div>
+        <p>当前的用户：{{userInfo.username}}</p>
+        <p>当前的角色：{{userInfo.role_name}}</p>
+        <p>分配新角色：
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option v-for="item in rolesList" :key="item.id" :label="item.roleName" :value="item.id">
+            </el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="setRoleDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -127,7 +156,7 @@ export default {
         username: "",
         email: "",
         mobile: "",
-        id:""
+        id: ""
       },
       userEditRules: {
         mobile: [
@@ -137,7 +166,15 @@ export default {
             trigger: "blur"
           }
         ]
-      }
+      },
+      // 控制分配角色对话框的显示与隐藏
+      setRoleDialogVisible: false,
+      // 需要被分配角色的用户信息
+      userInfo: {},
+      // 所有角色的数据列表
+      rolesList: [],
+      // 已选中的角色Id值
+      selectedRoleId: ''
     };
   },
 
@@ -215,31 +252,32 @@ export default {
     // data是传入的scope.row
     openEditUser(data) {
       this.userEditDialog = true;
-      for (let key in this.userEditForm){
-        this.userEditForm[key] = data[key]
+      for (let key in this.userEditForm) {
+        this.userEditForm[key] = data[key];
       }
-      console.log(this.userEditForm,data)
     },
     // 编辑用户
     editUser() {
-      this.$refs.userEditForm.validate(valid=>{
-        if(valid){
-          const {id,email,mobile}=this.userEditForm
-          this.$http.put(`/users/${id}`,{
-            email,
-            mobile
-          }).then(res=>{
-            const {data,meta}=res.data
-            if(meta.status===200){
-              // 更新用户数据
-              const editUser = this.userList.find(item=>item.id===id)
-              editUser.email = data.email
-              editUser.mobile = data.mobile
-              this.userEditDialog =false
-            }
-          })
+      this.$refs.userEditForm.validate(valid => {
+        if (valid) {
+          const { id, email, mobile } = this.userEditForm;
+          this.$http
+            .put(`/users/${id}`, {
+              email,
+              mobile
+            })
+            .then(res => {
+              const { data, meta } = res.data;
+              if (meta.status === 200) {
+                // 更新用户数据
+                const editUser = this.userList.find(item => item.id === id);
+                editUser.email = data.email;
+                editUser.mobile = data.mobile;
+                this.userEditDialog = false;
+              }
+            });
         }
-      })
+      });
     },
     // 删除用户
     delUser(id) {
@@ -271,6 +309,46 @@ export default {
             message: "已取消删除"
           });
         });
+    },
+  // 展示分配角色的对话框
+    async setRole(userInfo) {
+      this.userInfo = userInfo
+
+      // 在展示对话框之前，获取所有角色的列表
+      const { data: res } = await this.$http.get('roles')
+      if (res.meta.status !== 200) {
+        return this.$message.error('获取角色列表失败！')
+      }
+
+      this.rolesList = res.data
+
+      this.setRoleDialogVisible = true
+    },
+    // 点击按钮，分配角色
+    async saveRoleInfo() {
+      if (!this.selectedRoleId) {
+        return this.$message.error('请选择要分配的角色！')
+      }
+
+      const { data: res } = await this.$http.put(
+        `users/${this.userInfo.id}/role`,
+        {
+          rid: this.selectedRoleId
+        }
+      )
+
+      if (res.meta.status !== 200) {
+        return this.$message.error('更新角色失败！')
+      }
+
+      this.$message.success('更新角色成功！')
+      this.getUserList()
+      this.setRoleDialogVisible = false
+    },
+    // 监听分配角色对话框的关闭事件
+    setRoleDialogClosed() {
+      this.selectedRoleId = ''
+      this.userInfo = {}
     }
   }
 };
